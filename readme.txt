@@ -11,6 +11,8 @@ A bulk conversion utility for post types.
 
 This is a utility for converting lots of posts or pages to a custom post type (or vice versa). You can limit the conversion to posts in a single category or children of specific page. You can also assign new taxonomy terms, which will be added to the posts' existing terms.
 
+This plugin is useful for converting many posts at once. If you'd rather do one at a time, use <a href="http://wordpress.org/extend/plugins/post-type-switcher/">Post Type Switcher</a> instead.
+
 == Installation ==
 
 1. Install a database backup plugin, like <a href="http://www.ilfilosofo.com/blog/wp-db-backup">WP DB Backup</a>. Make a backup of your database, and make sure you know how to restore your site using the backup. I'm not kidding. Do this first!
