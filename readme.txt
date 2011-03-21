@@ -2,8 +2,8 @@
 Contributors: sillybean
 Tags: post types, conversion
 Requires at least: 3.0
-Tested up to: 3.0
-Stable tag: 1.0
+Tested up to: 3.1
+Stable tag: 1.1
 
 A bulk conversion utility for post types.
 
@@ -26,5 +26,7 @@ This plugin is useful for converting many posts at once. If you'd rather do one 
 
 == Changelog ==
 
+= 1.1 =
+* Removed private post types (like nav menu items) from the dropdown menus to prevent accidents. Only public post types are available for switching.
 = 1.0 =
 * First release (June 30, 2010)

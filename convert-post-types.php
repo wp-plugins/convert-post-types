@@ -2,7 +2,7 @@
 /*
 Plugin Name: Convert Post Types
 Plugin URI: http://sillybean.net/plugins/convert-post-types
-Version: 1.0
+Version: 1.1
 Author: Stephanie Leary
 Author URI: http://sillybean.net
 Description: A bulk conversion utility for post types.
@@ -31,24 +31,26 @@ function bulk_convert_post_type_css() {
 function bulk_convert_post_type_options() {
 	if ( current_user_can('edit_posts') && current_user_can('edit_pages') ) {  
 		$hidden_field_name = 'bulk_convert_post_submit_hidden';
-		if( $_POST[ $hidden_field_name ] == 'Y' ) {
+		if( isset($_POST[ $hidden_field_name ]) && $_POST[ $hidden_field_name ] == 'Y' ) {
 			bulk_convert_posts();
 		    ?>
 			<div class="updated"><p><strong><?php _e('Posts converted.', 'convert-post-types'); ?></strong></p></div>
 		<?php } ?>
 	
     <div class="wrap">
-    <?php if( $_POST[ $hidden_field_name ] != 'Y' ) { ?>
+    <?php if( !isset($_POST[ $hidden_field_name ]) || $_POST[ $hidden_field_name ] != 'Y' ) { ?>
 	<form method="post">
     <h2><?php _e( 'Convert Post Types', 'convert-post-types'); ?></h2>
 	<p><?php _e('With great power comes great responsibility. This process could <strong>really</strong> screw up your database. Please <a href="http://www.ilfilosofo.com/blog/wp-db-backup">make a backup</a> before proceeding.', 'convert-post-types'); ?></p>
-	<input type="hidden" name="<?php echo $hidden_field_name; ?>" value="Y">
+	<input type="hidden" name="<?php echo esc_attr($hidden_field_name); ?>" value="Y">
 	<p class="filters">
 	<?php
-	$post_types = get_post_types();
+	$typeselect = '';
+	if (isset($_POST['convert_cat'])) $convert_cat = $_POST['convert_cat']; else $convert_cat = '';
+	$post_types = get_post_types(array('public'=>true));
 	foreach ($post_types as $type) {
-		$typeselect .= "<option value=\"" . $type . "\">";
-		$typeselect .= $type;
+		$typeselect .= "<option value=\"" . esc_attr($type) . "\">";
+		$typeselect .= esc_html($type);
 		$typeselect .= "</option>";
 	}
 	?>
@@ -62,7 +64,7 @@ function bulk_convert_post_type_options() {
 		<?php echo $typeselect; ?>
 		</select>
 		
-	<?php wp_dropdown_categories('name=convert_cat&show_option_none=Limit posts to category...&hide_empty=0&hierarchical=1&selected='.$_POST['convert_cat']); ?>
+	<?php wp_dropdown_categories('name=convert_cat&show_option_none=Limit posts to category...&hide_empty=0&hierarchical=1&selected='.$convert_cat); ?>
 	
 	<?php wp_dropdown_pages('name=page_parent&show_option_none=Limit pages to children of...'); ?>
 	
@@ -75,13 +77,13 @@ function bulk_convert_post_type_options() {
 				<?php 
 				if (!is_taxonomy_hierarchical($tax->name)) :
 				// non-hierarchical
-					$nonhierarchical .= '<p class="taginput"><label>'.$tax->label.'<br />';
-					$nonhierarchical .= '<input type="text" name="'.$tax->name.'" class="widefloat" /></label></p>';
+					$nonhierarchical .= '<p class="taginput"><label>'.esc_html($tax->label).'<br />';
+					$nonhierarchical .= '<input type="text" name="'.esc_attr($tax->name).'" class="widefloat" /></label></p>';
 				else:
 				// hierarchical 
 				?>
 				 	<div class="categorychecklistbox">
-						<label><?php echo $tax->label; ?><br />
+						<label><?php echo esc_html($tax->label); ?><br />
 			        <ul class="categorychecklist">
 			     	<?php
 					wp_terms_checklist(0, array(
@@ -119,7 +121,7 @@ function bulk_convert_post_type_options() {
 
 function bulk_convert_posts() {
 	global $wpdb, $wp_taxonomies, $wp_rewrite;
-	$q = 'numberposts=-1&post_status=publish,private,pending,draft&post_type='.$_POST['post_type'];
+	$q = 'numberposts=-1&post_status=any&post_type='.$_POST['post_type'];
 	if (!empty($_POST['convert_cat'])) $q .= '&category='.$_POST['convert_cat'];
 	if (!empty($_POST['page_parent'])) $q .= '&post_parent='.$_POST['page_parent'];
 	
