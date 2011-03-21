@@ -2,7 +2,7 @@
 Contributors: sillybean
 Tags: post types, conversion
 Requires at least: 3.0
-Tested up to: 3.0
+Tested up to: 3.1
 Stable tag: 1.0
 
 A bulk conversion utility for post types.
@@ -12,6 +12,10 @@ A bulk conversion utility for post types.
 This is a utility for converting lots of posts or pages to a custom post type (or vice versa). You can limit the conversion to posts in a single category or children of specific page. You can also assign new taxonomy terms, which will be added to the posts' existing terms.
 
 This plugin is useful for converting many posts at once. If you'd rather do one at a time, use <a href="http://wordpress.org/extend/plugins/post-type-switcher/">Post Type Switcher</a> instead.
+
+== Translations ==
+
+If you would like to send me a translation, please write to me through <a href="http://sillybean.net/about/contact/">my contact page</a>. Let me know which plugin you've translated and how you would like to be credited. I will write you back so you can attach the files in your reply.
 
 == Installation ==
 
