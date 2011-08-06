@@ -1,6 +1,7 @@
 === Convert Post Types ===
 Contributors: sillybean
 Tags: post types, conversion
+Donate Link: http://sillybean.net/code/wordpress/convert-post-types/
 Requires at least: 3.0
 Tested up to: 3.1
 Stable tag: 1.1
