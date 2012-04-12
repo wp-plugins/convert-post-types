@@ -2,7 +2,7 @@
 /*
 Plugin Name: Convert Post Types
 Plugin URI: http://sillybean.net/plugins/convert-post-types
-Version: 1.1
+Version: 1.2
 Author: Stephanie Leary
 Author URI: http://sillybean.net
 Description: A bulk conversion utility for post types.
@@ -11,13 +11,16 @@ License: GPL2
 
 add_action('admin_menu', 'bulk_convert_posts_add_pages');
 
-function bulk_convert_posts_add_pages() {
-	$css = add_management_page(__('Convert Post Types', 'convert-post-types'), __('Convert Post Types', 'convert-post-types'), 'manage_options', __FILE__, 'bulk_convert_post_type_options');
-	add_action("admin_head-$css", 'bulk_convert_post_type_css');
+if(!function_exists('bulk_convert_posts_add_pages')) {
+	function bulk_convert_posts_add_pages() {
+		$css = add_management_page(__('Convert Post Types', 'convert-post-types'), __('Convert Post Types', 'convert-post-types'),
+		 	'manage_options', __FILE__, 'bulk_convert_post_type_options');
+		add_action('admin_head-'.$css, 'bulk_convert_post_type_css');
+	}
 }
 
-function bulk_convert_post_type_css() {
-	echo '<style type="text/css">
+function bulk_convert_post_type_css() { ?>
+	<style type="text/css">
 		div.categorychecklistbox { float: left; margin: 1em 1em 1em 0; }
 		ul.categorychecklist { height: 15em; width: 20em; overflow-y: scroll; border: 1px solid #dfdfdf; padding: 0 1em; background: #fff; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; }
 		ul.categorychecklist ul.children { margin-left: 1em; }
@@ -25,7 +28,8 @@ function bulk_convert_post_type_css() {
 		p.taginput input { width: 100%; }
 		p.filters select { width: 24em; margin: 1em 1em 1em 0;  }
 		p.submit { clear: both; }
-	</style>';
+	</style>
+	<?php
 }
 
 function bulk_convert_post_type_options() {
@@ -128,8 +132,7 @@ function bulk_convert_posts() {
 	$items = get_posts($q);
 	foreach ($items as $item) {
 		// Update the post into the database
-		$wpdb->update( $wpdb->posts, array( 'post_type' => $_POST['new_post_type']), array( 'ID' => $item->ID, 'post_type' => $_POST['post_type']), array( '%s' ), array( '%d', '%s' ) );
-//		$wpdb->print_error(); 
+		wp_update_post( array('ID' => $item->ID, 'post_type' => $_POST['new_post_type']) );
 		echo '<p>'.__("Converted ", 'convert-post-types').$item->ID.": ".$item->post_title.'.</p>';		
 		
 		foreach ( $wp_taxonomies as $tax ) :
