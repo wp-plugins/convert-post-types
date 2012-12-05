@@ -73,7 +73,7 @@ function bulk_convert_post_type_options() {
 		<?php wp_dropdown_pages('name=page_parent&show_option_none=Limit pages to children of...'); ?>
 	
 		</p>
-		<?php global $wp_taxonomies; ?>
+		<?php global $wp_taxonomies; $nonhierarchical = ''; ?>
 		<?php if ( is_array( $wp_taxonomies ) ) : ?>
 		<h4><?php _e('Assign custom taxonomy terms', 'convert-post-types'); ?></h4>
 				<?php foreach ( $wp_taxonomies as $tax ) :

@@ -3,8 +3,8 @@ Contributors: sillybean
 Tags: post types, conversion
 Donate Link: http://sillybean.net/code/wordpress/convert-post-types/
 Requires at least: 3.0
-Tested up to: 3.3
-Stable tag: 1.2
+Tested up to: 3.5
+Stable tag: 1.2.1
 
 A bulk conversion utility for post types.
 
@@ -27,6 +27,8 @@ This plugin is useful for converting many posts at once. If you'd rather do one 
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed a notice on the admin screen.
 = 1.2 =
 * Fixed compatibility problem with WordPress 3.3.
 * Using built-in functions instead of database queries for better caching and support for hooks.
