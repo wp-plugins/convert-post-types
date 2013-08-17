@@ -2,7 +2,7 @@
 /*
 Plugin Name: Convert Post Types
 Plugin URI: http://sillybean.net/plugins/convert-post-types
-Version: 1.2
+Version: 1.3
 Author: Stephanie Leary
 Author URI: http://sillybean.net
 Description: A bulk conversion utility for post types.
@@ -12,7 +12,7 @@ License: GPL2
 add_action('admin_menu', 'bulk_convert_posts_add_pages');
 
 function bulk_convert_posts_add_pages() {
-	$css = add_management_page(__('Convert Post Types', 'convert-post-types'), __('Convert Post Types', 'convert-post-types'), 'manage_options', __FILE__, 'bulk_convert_post_type_options');
+	$css = add_management_page(__('Convert Post Types', 'convert-post-types'), __('Convert Post Types', 'convert-post-types'), 'manage_options', 'convert-post-types', 'bulk_convert_post_type_options');
 	add_action('admin_head-'.$css, 'bulk_convert_post_type_css');
 }
 
@@ -25,6 +25,7 @@ function bulk_convert_post_type_css() { ?>
 		p.taginput input { width: 100%; }
 		p.filters select { width: 24em; margin: 1em 1em 1em 0; }
 		p.submit { clear: both; }
+		p.msg { margin-left: 1em; }
 	</style>
 	<?php
 }
@@ -34,9 +35,7 @@ function bulk_convert_post_type_options() {
 		$hidden_field_name = 'bulk_convert_post_submit_hidden';
 		if( isset($_POST[ $hidden_field_name ]) && $_POST[ $hidden_field_name ] == 'Y' ) {
 			bulk_convert_posts();
-		    ?>
-			<div class="updated"><p><strong><?php _e('Posts converted.', 'convert-post-types'); ?></strong></p></div>
-		<?php } // $hidden_field_name ?>
+		} // $hidden_field_name ?>
 	
     <div class="wrap">
     <?php if( !isset($_POST[ $hidden_field_name ]) || $_POST[ $hidden_field_name ] != 'Y' ) { ?>
@@ -124,43 +123,74 @@ function bulk_convert_post_type_options() {
 } 
 
 function bulk_convert_posts() {
-	global $wpdb, $wp_taxonomies, $wp_rewrite;
-	$q = 'numberposts=-1&post_status=any&post_type='.$_POST['old_post_type'];
-	if (!empty($_POST['convert_cat']) && $_POST['convert_cat'] > 1) $q .= '&category='.$_POST['convert_cat'];
-	if (!empty($_POST['page_parent']) && $_POST['page_parent'] > 1) $q .= '&post_parent='.$_POST['page_parent'];
+	// check for invalid post type choices
+	if ( $_POST['new_post_type'] == -1 || $_POST['old_post_type'] == -1 ) {
+		echo '<p class="error">'.__('Could not convert posts. One of the post types was not set.', 'convert-post-types').'</p>';
+		return;
+	}
+	if ( !post_type_exists( $_POST['new_post_type'] ) || !post_type_exists( $_POST['old_post_type'] ) ) {
+		echo '<p class="error">'.__('Could not convert posts. One of the selected post types does not exist.', 'convert-post-types').'</p>';
+		return;
+	}
 	
-	$items = get_posts($q);
+	$query = array(
+		'posts_per_page'	=> -1,
+		'post_status' 		=> 'any',
+		'post_type'			=> $_POST['old_post_type'],
+	);
+	
+	if ( !empty( $_POST['convert_cat'] ) && $_POST['convert_cat'] > 1 )
+		$query['cat'] = $_POST['convert_cat'];
+	
+	if ( !empty( $_POST['page_parent'] ) && $_POST['page_parent'] > 0 ) 
+		$query['post_parent'] = $_POST['page_parent'];
+	
+	$items = get_posts($query);
+	
+	if ( !is_array( $items ) ) {
+		echo '<p class="error">'.__('Could not find any posts matching your criteria.', 'convert-post-types').'</p>';
+		return;
+	}
+	
+	global $wp_taxonomies;
+	
 	foreach ($items as $item) {
+		
 		// Update the post into the database
 		$update['ID'] = $item->ID;
 		$update['post_type'] = $_POST['new_post_type'];
+		// handle post categories now; otherwise all posts will receive the default
+		if ( 'post' == $_POST['new_post_type'] && isset($_POST['post_category']) && !empty($_POST['post_category']) ) 
+			$update['post_category'] = $_POST['post_category'];
 		$converted = wp_update_post( $update );
-		if ($converted !== 0)
-			echo '<p>'.__("Converted ", 'convert-post-types').$item->ID.": ".$item->post_title.'.</p>';
-		else echo '<p>'.sprintf(__('Could not convert post #%s.', 'convert-post-types'), $item->ID).'</p>';
 		
+		if ( is_wp_error( $converted ) ) {
+		   $error_string = $converted->get_error_message();
+		   echo '<p class="error">' . sprintf(__('Could not convert post #%d. %s', 'convert-post-types'), $item->ID, $error_string) . '</p>';
+		}
+		else
+			echo '<p>' . sprintf(__('Converted post #%d.', 'convert-post-types'), $item->ID) . '</p>';
+		
+		// set new taxonomy terms
 		foreach ( $wp_taxonomies as $tax ) :
-			// set new taxonomies
-			if (!empty($_POST['tax_input'][$tax->name])) {
-				foreach ($_POST['tax_input'][$tax->name] as $taxid) { // hierarchical 	
-					$term = get_term($taxid, $tax->name);
-					wp_set_post_terms( $item->ID, $term->term_id, $tax->name, false );
-					echo '<p style="text-indent: 1em;">'.__('Set ', 'convert-post-types').$tax->label.__("to", 'convert-post-types'). $term->name.'</p>';
-				}
+			
+			// hierarchical custom taxonomies
+			if ( isset($_POST['tax_input'][$tax->name]) && !empty($_POST['tax_input'][$tax->name]) && is_array( $_POST['tax_input'][$tax->name] ) ) {
+				wp_set_post_terms( $item->ID, $_POST['tax_input'][$tax->name], $tax->name, false );
+				echo '<p class="msg">'.sprintf(__('Set %s to %s', 'convert-post-types'), $tax->label, $term->$name).'</p>';
 			}
-			if (!empty($_POST[$tax->name])) {
-				foreach ($_POST[$tax->name] as $taxid) {	
-					$term = get_term($taxid, $tax->name);
-					wp_set_post_terms( $item->ID, $term->name, $tax->name, false );
-					echo '<p style="text-indent: 1em;">'.__('Set ', 'convert-post-types').$tax->label.__("to", 'convert-post-types'). $term->name.'</p>';
-				}
+			// all flat taxonomies
+			if ( isset($_POST[$tax->name]) && !empty($_POST[$tax->name]) && 'post_category' != $tax->name ) {
+				wp_set_post_terms( $item->ID, $_POST[$tax->name], $name, false );
+				if ( 'post_category' == $tax->name )
+					echo '<p class="msg">'.sprintf(__('Set %s to %s', 'convert-post-types'), $tax->label, join(', ', $_POST[$tax->name])).'</p>';
+				else
+					echo '<p class="msg">'.sprintf(__('Set %s to %s', 'convert-post-types'), $tax->label, $_POST[$tax->name]).'</p>';
 			}
 		endforeach;
 	}
-	$wp_rewrite->flush_rules();
+	echo '<div class="updated"><p><strong>' .__('Posts converted.', 'convert-post-types'). '</strong></p></div>';
 }
 
 // i18n
-$plugin_dir = basename(dirname(__FILE__)). '/languages';
-load_plugin_textdomain( 'convert-post-types', WP_PLUGIN_DIR.'/'.$plugin_dir, $plugin_dir );
-?>
+load_plugin_textdomain( 'convert-post-types', '', plugin_dir_path(__FILE__) . '/languages' );

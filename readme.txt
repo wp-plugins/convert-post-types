@@ -2,9 +2,11 @@
 Contributors: sillybean
 Tags: post types, conversion
 Donate Link: http://sillybean.net/code/wordpress/convert-post-types/
+Text Domain: convert-post-types
+Domain Path: /languages
 Requires at least: 3.0
-Tested up to: 3.5
-Stable tag: 1.2.1
+Tested up to: 3.6
+Stable tag: 1.3
 
 A bulk conversion utility for post types.
 
@@ -27,6 +29,11 @@ This plugin is useful for converting many posts at once. If you'd rather do one 
 
 == Changelog ==
 
+= 1.3 =
+* Failing to select a to/from post type now gives an error instead of converting posts to an invalid type.
+* Things converted to posts do not receive the default category if other categories are set.
+* Flat taxonomies are now set correctly.
+* Various query-related bugs fixed, like all pages being converted even if a parent was chosen.
 = 1.2.1 =
 * Fixed a notice on the admin screen.
 = 1.2 =
