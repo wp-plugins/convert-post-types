@@ -2,7 +2,7 @@
 /*
 Plugin Name: Convert Post Types
 Plugin URI: http://sillybean.net/plugins/convert-post-types
-Version: 1.3
+Version: 1.3.1
 Author: Stephanie Leary
 Author URI: http://sillybean.net
 Description: A bulk conversion utility for post types.
@@ -108,13 +108,14 @@ function bulk_convert_post_type_options() {
 				endforeach; 
 				echo '<br class="clear" />'.$nonhierarchical;
 				?>
-		</div>
+		
 		<?php endif; ?>
 
 		<p class="submit">
 		<input type="submit" name="submit" value="<?php _e('Convert &raquo;', 'convert-post-types'); ?>" />
 		</p>
 		</form>
+		
     <?php } // if $hidden_field_name ?>
 
     </div>
