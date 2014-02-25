@@ -6,7 +6,7 @@ Text Domain: convert-post-types
 Domain Path: /languages
 Requires at least: 3.0
 Tested up to: 3.8.1
-Stable tag: 1.3.1
+Stable tag: 1.4
 
 A bulk conversion utility for post types.
 
@@ -29,6 +29,8 @@ This plugin is useful for converting many posts at once. If you'd rather do one 
 
 == Changelog ==
 
+= 1.4 =
+* Refactored some code and added WPML support. Props <a href="http://www.jennybeaumont.com/post-type-switcher-wpml-fix/">Jenny Beaumont</a>.
 = 1.3.1 =
 * Fixed a problem with the "Convert" button overlapping the footer in WP 3.8x
 = 1.3 =

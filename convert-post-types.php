@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Convert Post Types
-Plugin URI: http://sillybean.net/plugins/convert-post-types
-Version: 1.3.1
+Plugin URI: http://stephanieleary.com/plugins/convert-post-types
+Version: 1.4
 Author: Stephanie Leary
-Author URI: http://sillybean.net
+Author URI: http://stephanieleary.com
 Description: A bulk conversion utility for post types.
 License: GPL2
 */
@@ -155,34 +155,55 @@ function bulk_convert_posts() {
 	
 	global $wp_taxonomies;
 	
-	foreach ($items as $item) {
+	foreach ($items as $post) {
 		
 		// Update the post into the database
-		$update['ID'] = $item->ID;
-		$update['post_type'] = $_POST['new_post_type'];
-		// handle post categories now; otherwise all posts will receive the default
-		if ( 'post' == $_POST['new_post_type'] && isset($_POST['post_category']) && !empty($_POST['post_category']) ) 
-			$update['post_category'] = $_POST['post_category'];
-		$converted = wp_update_post( $update );
-		
-		if ( is_wp_error( $converted ) ) {
-		   $error_string = $converted->get_error_message();
-		   echo '<p class="error">' . sprintf(__('Could not convert post #%d. %s', 'convert-post-types'), $item->ID, $error_string) . '</p>';
+		$update['ID'] = $post->ID;
+		if ( ! $new_post_type_object = get_post_type_object($_POST['new_post_type'] ) )
+			echo '<p class="error">' . sprintf(__('Could not convert post #%d. %s', 'convert-post-types'), $post->ID, _('The new post type was not valid.')) . '</p>';
+		else {
+			// handle post categories now; otherwise all posts will receive the default
+			if ( 'post' == $new_post_type_object->name && isset($_POST['post_category']) && !empty($_POST['post_category']) ) 
+				wp_set_post_terms( $post->ID, $_POST['post_category'], 'post_category', false );
+			set_post_type( $post->ID, $new_post_type_object->name );
+			
+			// WPML support. Thanks to Jenny Beaumont! http://www.jennybeaumont.com/post-type-switcher-wpml-fix/
+			if ( function_exists( 'icl_object_id' ) ) {
+			// adjust field 'element_type' in table 'wp_icl_translations'
+			// from 'post_OLDNAME' to 'post_NEWNAME'
+			// the post_id you look for is in column: 'element_id'
+
+			    if ( $post->post_type == 'revision' ) {
+					if ( is_array( $post->ancestors ) ) {
+						$ID = $post->ancestors[0];
+					}
+			    } 
+				else {
+					$ID = $post->ID;
+				}
+			    global $wpdb;
+
+				$wpdb->update(
+			          $wpdb->prefix.'icl_translations',
+				  array('element_type' => 'post_' . $new_post_type_object->name ),
+				  array('element_id' => $ID,'element_type' => 'post_' . $post->post_type)
+				);
+
+			    $wpdb->print_error();
+			}
 		}
-		else
-			echo '<p>' . sprintf(__('Converted post #%d.', 'convert-post-types'), $item->ID) . '</p>';
 		
 		// set new taxonomy terms
 		foreach ( $wp_taxonomies as $tax ) :
 			
 			// hierarchical custom taxonomies
 			if ( isset($_POST['tax_input'][$tax->name]) && !empty($_POST['tax_input'][$tax->name]) && is_array( $_POST['tax_input'][$tax->name] ) ) {
-				wp_set_post_terms( $item->ID, $_POST['tax_input'][$tax->name], $tax->name, false );
+				wp_set_post_terms( $post->ID, $_POST['tax_input'][$tax->name], $tax->name, false );
 				echo '<p class="msg">'.sprintf(__('Set %s to %s', 'convert-post-types'), $tax->label, $term->$name).'</p>';
 			}
 			// all flat taxonomies
 			if ( isset($_POST[$tax->name]) && !empty($_POST[$tax->name]) && 'post_category' != $tax->name ) {
-				wp_set_post_terms( $item->ID, $_POST[$tax->name], $name, false );
+				wp_set_post_terms( $post->ID, $_POST[$tax->name], $tax->name, false );
 				if ( 'post_category' == $tax->name )
 					echo '<p class="msg">'.sprintf(__('Set %s to %s', 'convert-post-types'), $tax->label, join(', ', $_POST[$tax->name])).'</p>';
 				else
