@@ -2,7 +2,7 @@
 /*
 Plugin Name: Convert Post Types
 Plugin URI: http://stephanieleary.com/plugins/convert-post-types
-Version: 1.4
+Version: 1.5
 Author: Stephanie Leary
 Author URI: http://stephanieleary.com
 Description: A bulk conversion utility for post types.
@@ -86,7 +86,7 @@ function bulk_convert_post_type_options() {
 					// hierarchical 
 					?>
 					 	<div class="categorychecklistbox">
-							<label><?php echo esc_html($tax->label); ?><br />
+							<label><?php echo esc_html($tax->label); ?></label><br />
 				        <ul class="categorychecklist">
 				     	<?php
 						wp_terms_checklist(0, array(
@@ -112,7 +112,7 @@ function bulk_convert_post_type_options() {
 		<?php endif; ?>
 
 		<p class="submit">
-		<input type="submit" name="submit" value="<?php _e('Convert &raquo;', 'convert-post-types'); ?>" />
+		<input type="submit" name="submit" class="primary button" value="<?php _e('Convert &raquo;', 'convert-post-types'); ?>" />
 		</p>
 		</form>
 		
@@ -166,6 +166,10 @@ function bulk_convert_posts() {
 			if ( 'post' == $new_post_type_object->name && isset($_POST['post_category']) && !empty($_POST['post_category']) ) 
 				wp_set_post_terms( $post->ID, $_POST['post_category'], 'post_category', false );
 			set_post_type( $post->ID, $new_post_type_object->name );
+			if ($post->post_status == 'inherit' && $_POST['old_post_type'] == 'attachment' ) {
+				$post->post_status = 'publish';
+				wp_update_post($post);
+			}
 			
 			// WPML support. Thanks to Jenny Beaumont! http://www.jennybeaumont.com/post-type-switcher-wpml-fix/
 			if ( function_exists( 'icl_object_id' ) ) {
