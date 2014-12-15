@@ -112,7 +112,7 @@ function bulk_convert_post_type_options() {
 		<?php endif; ?>
 
 		<p class="submit">
-		<input type="submit" name="submit" value="<?php _e('Convert &raquo;', 'convert-post-types'); ?>" />
+		<input type="submit" name="submit" class="primary button" value="<?php _e('Convert &raquo;', 'convert-post-types'); ?>" />
 		</p>
 		</form>
 		

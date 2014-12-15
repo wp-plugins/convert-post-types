@@ -5,7 +5,7 @@ Donate Link: http://sillybean.net/code/wordpress/convert-post-types/
 Text Domain: convert-post-types
 Domain Path: /languages
 Requires at least: 3.0
-Tested up to: 3.8.1
+Tested up to: 4.1
 Stable tag: 1.4
 
 A bulk conversion utility for post types.
